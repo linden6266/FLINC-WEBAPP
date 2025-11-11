@@ -10,63 +10,63 @@ const DB_PATH = join(__dirname, '../data/flinc.db');
 let db;
 
 export function initDb() {
-    return new Promise((resolve, reject) => {
-        db = new sqlite3.Database(DB_PATH, (err) => {
-            if (err) {
-                console.error('Error opening database', err);
-                reject(err);
-            } else {
-                console.log('Database initialized at', DB_PATH);
-                resolve(db);
-            }
-        });
+  return new Promise((resolve, reject) => {
+    db = new sqlite3.Database(DB_PATH, (err) => {
+      if (err) {
+        console.error('Error opening database', err);
+        reject(err);
+      } else {
+        console.log('Database initialized at', DB_PATH);
+        resolve(db);
+      }
     });
+  });
 }
 
 export function getDb() {
-    return db;
+  return db;
 }
 
 export function runDb(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve({ id: this.lastID, changes: this.changes });
-            }
-        });
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ id: this.lastID, changes: this.changes });
+      }
     });
+  });
 }
 
 export function getDb_single(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(row);
-            }
-        });
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(row);
+      }
     });
+  });
 }
 
 export function getAllDb(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(rows || []);
-            }
-        });
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows || []);
+      }
     });
+  });
 }
 
 export async function createSchema() {
-    try {
-        // Create Users table
-        await runDb(`
+  try {
+    // Create Users table
+    await runDb(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
@@ -76,8 +76,8 @@ export async function createSchema() {
       )
     `);
 
-        // Create Games table
-        await runDb(`
+    // Create Games table
+    await runDb(`
       CREATE TABLE IF NOT EXISTS games (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -91,8 +91,8 @@ export async function createSchema() {
       )
     `);
 
-        // Create News table
-        await runDb(`
+    // Create News table
+    await runDb(`
       CREATE TABLE IF NOT EXISTS news (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -105,8 +105,8 @@ export async function createSchema() {
       )
     `);
 
-        // Create Notifications table
-        await runDb(`
+    // Create Notifications table
+    await runDb(`
       CREATE TABLE IF NOT EXISTS notifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
@@ -121,8 +121,8 @@ export async function createSchema() {
       )
     `);
 
-        // Create Likes table
-        await runDb(`
+    // Create Likes table
+    await runDb(`
       CREATE TABLE IF NOT EXISTS likes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -134,8 +134,8 @@ export async function createSchema() {
       )
     `);
 
-        // Create Comments table
-        await runDb(`
+    // Create Comments table
+    await runDb(`
       CREATE TABLE IF NOT EXISTS comments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -147,10 +147,57 @@ export async function createSchema() {
       )
     `);
 
-        console.log('Schema created successfully');
-    } catch (error) {
-        console.error('Error creating schema:', error);
-        throw error;
-    }
+    // Create Bingo Cards table
+    await runDb(`
+      CREATE TABLE IF NOT EXISTS bingo_cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    // Create Bingo Squares table
+    await runDb(`
+      CREATE TABLE IF NOT EXISTS bingo_squares (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        bingo_card_id INTEGER NOT NULL,
+        position INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        checked INTEGER DEFAULT 0,
+        FOREIGN KEY (bingo_card_id) REFERENCES bingo_cards(id)
+      )
+    `);
+
+    // Create Quiz Scores table
+    await runDb(`
+      CREATE TABLE IF NOT EXISTS quiz_scores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        score INTEGER NOT NULL,
+        total_questions INTEGER DEFAULT 5,
+        completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    // Create Quiz Attempts table (to prevent multiple attempts per day)
+    await runDb(`
+      CREATE TABLE IF NOT EXISTS quiz_attempts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        attempt_date DATE NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, attempt_date),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
+    console.log('Schema created successfully');
+  } catch (error) {
+    console.error('Error creating schema:', error);
+    throw error;
+  }
 }
 

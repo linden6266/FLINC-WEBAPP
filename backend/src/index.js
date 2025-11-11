@@ -7,6 +7,8 @@ import gamesRoutes from './routes/games.js';
 import newsRoutes from './routes/news.js';
 import notificationRoutes from './routes/notifications.js';
 import engagementRoutes from './routes/engagement.js';
+import bingoRoutes from './routes/bingo.js';
+import quizRoutes from './routes/quiz.js';
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +30,8 @@ app.use('/api/games', gamesRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/engagement', engagementRoutes);
+app.use('/api/bingo', bingoRoutes);
+app.use('/api/quiz', quizRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

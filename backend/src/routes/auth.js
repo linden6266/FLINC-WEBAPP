@@ -45,17 +45,14 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        console.log(username, password);
         if (!username || !password) {
             return res.status(400).json({ error: 'Username and password required' });
         }
 
         const user = await getDb_single('SELECT * FROM users WHERE username = ?', [username]);
-        console.log(user);
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        console.log(user.password);
         const passwordMatch = await verifyPassword(password, user.password);
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
