@@ -154,14 +154,14 @@
           class="flex space-x-3 p-4 rounded-lg hover:bg-flinc-gray transition-colors"
         >
           <img
-            :src="comment.avatar"
+            :src="`https://ui-avatars.com/api/?name=${comment.author_name}&background=004E89&color=fff`"
             :alt="comment.author"
             class="w-10 h-10 rounded-full"
           />
           <div class="flex-1">
             <div class="flex items-center space-x-2 mb-1">
               <span class="font-semibold text-flinc-darkgray">{{
-                comment.author
+                comment.author_name
               }}</span>
               <span class="text-xs text-gray-500">{{
                 formatDate(comment.date)
@@ -224,7 +224,10 @@ export default defineComponent({
     ...mapState(useUserStore, ["userName", "userAvatar"]),
     newsItem() {
       const newsStore = useNewsStore();
-      return newsStore.getNewsById(Number(this.$route.params.id));
+      const item = newsStore.getNewsById(Number(this.$route.params.id));
+      if (!item) return null;
+      console.log("News item:", item);
+      return item;
     },
     categoryClass() {
       if (!this.newsItem) return "";
@@ -249,19 +252,29 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNewsStore, ["toggleLike", "addComment"]),
-    formatDate(date: Date) {
+    formatDate(date: Date | string | undefined) {
+      if (!date) return "Nu";
+
+      // Convert string to Date if needed
+      const dateObj = typeof date === "string" ? new Date(date) : date;
+
+      if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+        return "Nu";
+      }
+
       const now = new Date();
-      const diff = now.getTime() - date.getTime();
+      const diff = now.getTime() - dateObj.getTime();
       const minutes = Math.floor(diff / 60000);
       const hours = Math.floor(diff / 3600000);
       const days = Math.floor(diff / 86400000);
 
-      if (minutes < 60) return `${minutes} minuten geleden`;
-      if (hours < 24) return `${hours} uur geleden`;
+      if (minutes < 1) return "Nu";
+      if (minutes < 60) return `${minutes}m geleden`;
+      if (hours < 24) return `${hours}u geleden`;
       if (days === 1) return "Gisteren";
-      if (days < 7) return `${days} dagen geleden`;
+      if (days < 7) return `${days}d geleden`;
 
-      return date.toLocaleDateString("nl-NL", {
+      return dateObj.toLocaleDateString("nl-NL", {
         day: "numeric",
         month: "long",
         year: "numeric",

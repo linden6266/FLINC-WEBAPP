@@ -89,25 +89,51 @@
             </transition>
           </div>
 
-          <!-- User Profile -->
-          <div class="flex items-center space-x-2">
-            <div
-              class="relative w-10 h-10 rounded-full bg-flinc-gradient p-0.5"
+          <!-- User Profile Dropdown -->
+          <div class="relative">
+            <button
+              @click="showProfile = !showProfile"
+              class="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
-              <img
-                :src="userAvatar"
-                :alt="userName"
-                class="w-full h-full rounded-full object-cover"
-              />
-            </div>
-            <div class="hidden md:block">
-              <p
-                class="text-sm font-semibold bg-flinc-gradient bg-clip-text text-transparent"
+              <div class="relative w-10 h-10 rounded-full overflow-hidden">
+                <img
+                  :src="userAvatar"
+                  :alt="userName"
+                  class="w-full h-full rounded-full object-cover bg-flinc-gradient"
+                />
+              </div>
+              <div class="hidden md:block">
+                <p
+                  class="text-sm font-semibold bg-flinc-gradient bg-clip-text text-transparent"
+                >
+                  {{ userName }}
+                </p>
+                <p class="text-xs text-gray-500">{{ userRole }}</p>
+              </div>
+            </button>
+
+            <!-- Profile Dropdown Menu -->
+            <transition name="fade">
+              <div
+                v-if="showProfile"
+                class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
               >
-                {{ userName }}
-              </p>
-              <p class="text-xs text-gray-500">{{ userRole }}</p>
-            </div>
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                  <p class="text-sm font-semibold text-flinc-darkgray">
+                    {{ userName }}
+                  </p>
+                  <p class="text-xs text-gray-500" v-if="isAdmin">👑 Admin</p>
+                </div>
+                <div class="py-2">
+                  <button
+                    @click="handleLogout"
+                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    ← Uitloggen
+                  </button>
+                </div>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -125,6 +151,7 @@ export default defineComponent({
   data() {
     return {
       showNotifications: false,
+      showProfile: false,
     };
   },
   computed: {
@@ -134,6 +161,7 @@ export default defineComponent({
       "userAvatar",
       "notifications",
       "unreadCount",
+      "isAdmin",
     ]),
     greeting() {
       const hour = new Date().getHours();
@@ -143,26 +171,41 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useUserStore, ["markAsRead", "markAllAsRead"]),
-    formatDate(date: Date) {
+    ...mapActions(useUserStore, ["markAsRead", "markAllAsRead", "logout"]),
+    formatDate(date: Date | string | undefined) {
+      if (!date) return "Nu";
+
+      // Convert string to Date if needed
+      const dateObj = typeof date === "string" ? new Date(date) : date;
+
+      if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+        return "Nu";
+      }
+
       const now = new Date();
-      const diff = now.getTime() - date.getTime();
+      const diff = now.getTime() - dateObj.getTime();
       const minutes = Math.floor(diff / 60000);
       const hours = Math.floor(diff / 3600000);
       const days = Math.floor(diff / 86400000);
 
-      if (minutes < 60) return `${minutes} minuten geleden`;
-      if (hours < 24) return `${hours} uur geleden`;
+      if (minutes < 1) return "Nu";
+      if (minutes < 60) return `${minutes}m geleden`;
+      if (hours < 24) return `${hours}u geleden`;
       if (days === 1) return "Gisteren";
-      return `${days} dagen geleden`;
+      return `${days}d geleden`;
+    },
+    handleLogout() {
+      this.logout();
+      this.$router.push("/login");
     },
   },
   mounted() {
-    // Close notifications when clicking outside
+    // Close notifications and profile when clicking outside
     document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
       if (!target.closest(".relative")) {
         this.showNotifications = false;
+        this.showProfile = false;
       }
     });
   },

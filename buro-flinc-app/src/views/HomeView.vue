@@ -91,84 +91,6 @@
             Start Quiz
           </router-link>
         </div>
-
-        <!-- Upcoming Events -->
-        <div class="card">
-          <h3
-            class="text-lg font-bold text-flinc-darkgray mb-4 flex items-center"
-          >
-            <svg
-              class="w-5 h-5 mr-2 text-flinc-pink"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            Aankomende Events
-          </h3>
-          <div class="space-y-3">
-            <div
-              v-for="event in upcomingEvents"
-              :key="event.id"
-              class="flex items-start space-x-3 p-3 rounded-lg hover:bg-flinc-gray transition-colors"
-            >
-              <div
-                class="flex-shrink-0 w-12 h-12 bg-flinc-pink rounded-lg flex flex-col items-center justify-center text-white"
-              >
-                <span class="text-xs font-semibold">{{
-                  event.date
-                    .toLocaleDateString("nl-NL", { month: "short" })
-                    .toUpperCase()
-                }}</span>
-                <span class="text-lg font-bold">{{
-                  event.date.getDate()
-                }}</span>
-              </div>
-              <div class="flex-1">
-                <h4 class="font-semibold text-sm text-flinc-darkgray">
-                  {{ event.title }}
-                </h4>
-                <p class="text-xs text-gray-500">{{ event.time }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Team Widget -->
-        <div
-          class="card bg-gradient-to-br from-flinc-blue to-flinc-lightblue text-white"
-        >
-          <h3 class="text-lg font-bold mb-3 flex items-center">
-            <svg
-              class="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            Mijn Team
-          </h3>
-          <p class="text-sm opacity-90 mb-4">
-            {{ userTeam }} - {{ teamMemberCount }} leden
-          </p>
-          <button
-            class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg font-semibold transition-all"
-          >
-            Bekijk Team
-          </button>
-        </div>
       </div>
     </div>
   </div>
@@ -197,27 +119,6 @@ export default defineComponent({
           icon: "Folder",
           gradient: "linear-gradient(135deg, #004E89 0%, #1A659E 100%)",
           url: "https://sharepoint.com",
-        },
-        {
-          title: "Teams",
-          description: "Mijn teamkanalen",
-          icon: "Users",
-          gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-          badge: "3 nieuwe",
-        },
-        {
-          title: "Planning",
-          description: "Agenda & roosters",
-          icon: "Calendar",
-          gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-          route: "/planning",
-        },
-        {
-          title: "BOOST",
-          description: "Leer & ontwikkel",
-          icon: "GraduationCap",
-          gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-          badge: "Nieuw!",
         },
       ],
       upcomingEvents: [
@@ -255,6 +156,11 @@ export default defineComponent({
     featuredNews() {
       return this.newsItems.slice(0, 3);
     },
+  },
+  async mounted() {
+    // Fetch news from API on mount
+    const newsStore = useNewsStore();
+    await newsStore.fetchNewsFromAPI();
   },
 });
 </script>

@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="bg-white flex justify-center px-4 sm:px-6 lg:px-8 h-[90vh] padding-top-10"
-  >
+  <div class="bg-white flex justify-center px-4 sm:px-6 lg:px-8 padding-top-10">
     <div class="w-full max-w-md space-y-8">
       <!-- Logo Section -->
       <div class="text-center">
@@ -20,22 +18,23 @@
 
       <!-- Login Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
-        <!-- Email Input -->
+        <!-- Username Input -->
         <div>
           <label
-            for="email"
+            for="username"
             class="block text-sm font-medium text-flinc-darkgray mb-2"
           >
-            E-mailadres
+            Gebruikersnaam
           </label>
           <input
-            id="email"
-            v-model="email"
-            type="email"
+            id="username"
+            v-model="username"
+            type="text"
             required
-            placeholder="jouw.email@buro-flinc.nl"
+            placeholder="jouw gebruikersnaam"
             class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-flinc-pink focus:ring-2 focus:ring-flinc-pink focus:ring-opacity-20 outline-none transition-all"
           />
+          <p class="text-xs text-gray-500 mt-1">Demo: admin / moderator</p>
         </div>
 
         <!-- Password Input -->
@@ -64,64 +63,109 @@
           <p class="text-sm text-red-600">{{ errorMessage }}</p>
         </div>
 
+        <!-- Success Message -->
+        <div
+          v-if="successMessage"
+          class="p-3 bg-green-50 border border-green-200 rounded-lg"
+        >
+          <p class="text-sm text-green-600">{{ successMessage }}</p>
+        </div>
+
         <!-- Login Button -->
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full btn-primary py-3 font-semibold"
+          class="w-full btn-primary py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span v-if="!isLoading">Inloggen</span>
           <span v-else>Inloggen...</span>
         </button>
       </form>
+
+      <!-- Test Credentials Info -->
+      <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-sm font-semibold text-blue-900 mb-2">
+          📝 Test Credentials:
+        </p>
+        <p class="text-xs text-blue-800 mb-1">
+          <strong>Admin:</strong> admin / admin123
+        </p>
+        <p class="text-xs text-blue-800">
+          <strong>Moderator:</strong> moderator / moderator123
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { authAPI } from "@/services/api";
+import { useUserStore } from "@/stores/userStore";
 
 export default defineComponent({
   name: "LoginView",
   data() {
     return {
-      email: "",
+      username: "",
       password: "",
-      rememberMe: false,
       isLoading: false,
       errorMessage: "",
+      successMessage: "",
     };
   },
   methods: {
     async handleLogin() {
       this.errorMessage = "";
+      this.successMessage = "";
       this.isLoading = true;
 
       try {
-        // Simulate login delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
         // Validate inputs
-        if (!this.email || !this.password) {
-          this.errorMessage = "Vul aub je e-mailadres en wachtwoord in.";
+        if (!this.username || !this.password) {
+          this.errorMessage = "Vul aub je gebruikersnaam en wachtwoord in.";
+          this.isLoading = false;
           return;
         }
 
-        // TODO: Add actual authentication logic here
-        console.log("Login attempt:", {
-          email: this.email,
-          password: this.password,
-          rememberMe: this.rememberMe,
+        // Call API to login
+        const response = await authAPI.login(this.username, this.password);
+
+        // Store the token
+        localStorage.setItem("authToken", response.token);
+        localStorage.setItem("userId", response.user.id);
+        localStorage.setItem("username", response.user.username);
+        localStorage.setItem("isAdmin", response.user.isAdmin);
+
+        // Update user store
+        const userStore = useUserStore();
+        userStore.setUser({
+          id: response.user.id,
+          username: response.user.username,
+          isAdmin: response.user.isAdmin,
         });
 
-        // For now, redirect to home
-        this.$router.push("/");
-      } catch (error) {
-        this.errorMessage = "Er is een fout opgetreden. Probeer het opnieuw.";
+        this.successMessage = `Welkom ${response.user.username}! Je wordt doorgestuurd...`;
+
+        // Redirect to home after a brief delay
+        setTimeout(() => {
+          this.$router.push("/");
+        }, 1000);
+      } catch (error: any) {
+        console.error("Login error:", error);
+        this.errorMessage =
+          error.message || "Er is een fout opgetreden. Probeer het opnieuw.";
       } finally {
         this.isLoading = false;
       }
     },
+  },
+  mounted() {
+    // Check if already logged in
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      this.$router.push("/");
+    }
   },
 });
 </script>

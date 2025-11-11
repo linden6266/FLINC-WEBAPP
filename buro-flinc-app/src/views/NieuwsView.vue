@@ -1,12 +1,24 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <div class="mb-8">
-      <h2 class="text-3xl font-bold text-flinc-darkgray mb-4">
-        📰 Nieuws & Verhalen
-      </h2>
-      <p class="text-gray-600">
-        Blijf op de hoogte van het laatste nieuws bij Buro Flinc
-      </p>
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-3xl font-bold text-flinc-darkgray mb-4">
+            📰 Nieuws & Verhalen
+          </h2>
+          <p class="text-gray-600">
+            Blijf op de hoogte van het laatste nieuws bij Buro Flinc
+          </p>
+        </div>
+        <!-- Admin Link -->
+        <router-link
+          v-if="isAdmin"
+          to="/admin/events"
+          class="px-4 py-2 bg-flinc-gradient text-white rounded-lg font-semibold hover:opacity-90 transition-all"
+        >
+          ⚙️ Beheer Events
+        </router-link>
+      </div>
     </div>
 
     <!-- Filter Tabs -->
@@ -19,7 +31,7 @@
           class="px-4 py-2 rounded-lg font-semibold transition-all duration-200"
           :class="
             selectedCategory === category.value
-              ? 'bg-flinc-pink text-white shadow-md'
+              ? 'bg-flinc-gradient text-white shadow-md'
               : 'bg-white text-gray-600 hover:bg-gray-100'
           "
         >
@@ -66,6 +78,7 @@
 import { defineComponent } from "vue";
 import { mapState } from "pinia";
 import { useNewsStore } from "../stores/newsStore";
+import { useUserStore } from "../stores/userStore";
 import NewsCard from "../components/NewsCard.vue";
 
 export default defineComponent({
@@ -87,6 +100,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useNewsStore, ["newsItems"]),
+    ...mapState(useUserStore, ["isAdmin"]),
     filteredNews() {
       if (this.selectedCategory === "all") {
         return this.newsItems;
@@ -95,6 +109,11 @@ export default defineComponent({
         (item) => item.category === this.selectedCategory
       );
     },
+  },
+  async mounted() {
+    // Fetch news from API on mount
+    const newsStore = useNewsStore();
+    await newsStore.fetchNewsFromAPI();
   },
 });
 </script>

@@ -7,7 +7,7 @@
         class="flex justify-around md:justify-center md:space-x-8 py-2 md:py-4"
       >
         <router-link
-          v-for="item in navItems"
+          v-for="item in navItems.filter((item) => item.visible !== false)"
           :key="item.path"
           :to="item.path"
           class="nav-item flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 px-3 py-2 rounded-lg transition-all duration-200"
@@ -27,7 +27,16 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { Home, Newspaper, Gamepad2, Settings, LogIn } from "lucide-vue-next";
+import {
+  Home,
+  Newspaper,
+  Gamepad2,
+  Settings,
+  LogIn,
+  Shield,
+} from "lucide-vue-next";
+import { useUserStore } from "../stores/userStore";
+import { mapState } from "pinia";
 
 export default defineComponent({
   name: "NavigationBar",
@@ -37,6 +46,13 @@ export default defineComponent({
     Gamepad2,
     Settings,
     LogIn,
+    Shield,
+  },
+  props: {
+    isLoggedIn: {
+      type: Boolean,
+      required: true,
+    },
   },
   data() {
     return {
@@ -44,9 +60,22 @@ export default defineComponent({
         { path: "/", label: "Home", icon: "Home" },
         { path: "/nieuws", label: "Nieuws", icon: "Newspaper" },
         { path: "/spel", label: "Spel", icon: "Gamepad2" },
-        { path: "/login", label: "Login", icon: "LogIn" },
+        {
+          path: "/login",
+          label: "Login",
+          icon: "LogIn",
+          visible: !this.isLoggedIn,
+        },
       ],
     };
+  },
+  computed: {
+    ...mapState(useUserStore, ["isAdmin"]),
+  },
+  watch: {
+    isAdmin(newVal) {
+      this.updateNavItems();
+    },
   },
   methods: {
     isActive(path: string): boolean {
@@ -55,6 +84,28 @@ export default defineComponent({
       }
       return this.$route.path.startsWith(path);
     },
+    updateNavItems() {
+      this.navItems = [
+        { path: "/", label: "Home", icon: "Home" },
+        { path: "/nieuws", label: "Nieuws", icon: "Newspaper" },
+        { path: "/spel", label: "Spel", icon: "Gamepad2" },
+        {
+          path: "/admin/events",
+          label: "Admin",
+          icon: "Shield",
+          visible: this.isAdmin,
+        },
+        {
+          path: "/login",
+          label: "Login",
+          icon: "LogIn",
+          visible: !this.isLoggedIn,
+        },
+      ];
+    },
+  },
+  mounted() {
+    this.updateNavItems();
   },
 });
 </script>

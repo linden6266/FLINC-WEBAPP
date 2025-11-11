@@ -1,0 +1,12 @@
+{
+    "watch": [
+        "src",
+        "scripts"
+    ],
+    "ext": "js",
+    "ignore": [
+        "node_modules/",
+        "data/"
+    ],
+    "exec": "node"
+}

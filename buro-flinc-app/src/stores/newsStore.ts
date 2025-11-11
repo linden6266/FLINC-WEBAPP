@@ -1,18 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { newsAPI, engagementAPI } from '../services/api'
 
 export interface NewsItem {
     id: number
     title: string
-    excerpt: string
+    excerpt?: string
     content: string
-    image: string
-    author: string
-    date: Date
+    image?: string
+    author_name?: string
+    author?: string
+    date?: Date
+    created_at?: string
     category: 'nieuws' | 'success' | 'verjaardag' | 'event'
-    likes: number
-    comments: Comment[]
-    isLiked: boolean
+    likes?: number
+    comments?: Comment[]
+    isLiked?: boolean
 }
 
 export interface Comment {
@@ -24,108 +27,87 @@ export interface Comment {
 }
 
 export const useNewsStore = defineStore('news', () => {
-    const newsItems = ref<NewsItem[]>([
-        {
-            id: 1,
-            title: 'BOOST-programma: Nieuwe mijlpaal bereikt! 🚀',
-            excerpt: 'Ons innovatieve BOOST-programma heeft een belangrijke mijlpaal bereikt met meer dan 50 deelnemers.',
-            content: 'Het BOOST-programma is een groot succes! Met meer dan 50 enthousiaste deelnemers hebben we samen geweldige stappen gezet in persoonlijke en professionele ontwikkeling. De komende maanden staan in het teken van innovatie en samenwerking.',
-            image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop',
-            author: 'Linda de Vries',
-            date: new Date(Date.now() - 86400000),
-            category: 'nieuws',
-            likes: 24,
-            comments: [
-                {
-                    id: 1,
-                    author: 'Mark Jansen',
-                    avatar: 'https://ui-avatars.com/api/?name=Mark+Jansen&background=004E89&color=fff',
-                    content: 'Super gaaf! Trots om onderdeel te zijn van dit programma!',
-                    date: new Date(Date.now() - 43200000)
-                }
-            ],
-            isLiked: false
-        },
-        {
-            id: 2,
-            title: 'Klant Succes: Gemeente Amsterdam kiest voor Flinc',
-            excerpt: 'We zijn trots om aan te kondigen dat Gemeente Amsterdam onze partner is geworden voor hun digitale transformatie.',
-            content: 'Een prachtige samenwerking met Gemeente Amsterdam! We gaan hen helpen bij het moderniseren van hun digitale infrastructuur en het verbeteren van de dienstverlening aan burgers. Dit is een mooie erkenning van ons werk.',
-            image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop',
-            author: 'Rob Hendriks',
-            date: new Date(Date.now() - 172800000),
-            category: 'success',
-            likes: 42,
-            comments: [],
-            isLiked: true
-        },
-        {
-            id: 3,
-            title: '🎉 Verjaardagen deze week',
-            excerpt: 'Deze week vieren we de verjaardagen van Jan (maandag), Fatima (woensdag) en Peter (vrijdag)!',
-            content: 'Gefeliciteerd aan al onze jarigen deze week! Jan wordt maandag een jaartje ouder, Fatima viert woensdag haar verjaardag en Peter sluit vrijdag af. Vergeet niet om ze te feliciteren!',
-            image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format&fit=crop',
-            author: 'HR Team',
-            date: new Date(Date.now() - 259200000),
-            category: 'verjaardag',
-            likes: 18,
-            comments: [],
-            isLiked: false
-        },
-        {
-            id: 4,
-            title: 'Teamuitje Q1 2025: Stem nu op de locatie!',
-            excerpt: 'Help mee beslissen waar we het volgende teamuitje houden. Kies uit drie geweldige opties!',
-            content: 'Het is weer tijd voor ons traditionele teamuitje! Dit keer laten we jullie meebeslissen. Stemmen kan tot eind volgende week. De opties zijn: 1) Escape room + borrel in Utrecht, 2) High tea + workshop in Amsterdam, 3) Outdoor adventure in Veluwe.',
-            image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&auto=format&fit=crop',
-            author: 'Activiteitencommissie',
-            date: new Date(Date.now() - 345600000),
-            category: 'event',
-            likes: 31,
-            comments: [
-                {
-                    id: 1,
-                    author: 'Sarah Bakker',
-                    avatar: 'https://ui-avatars.com/api/?name=Sarah+Bakker&background=FF6B35&color=fff',
-                    content: 'Escape room klinkt super leuk!',
-                    date: new Date(Date.now() - 259200000)
-                }
-            ],
-            isLiked: false
-        },
-        {
-            id: 5,
-            title: 'Nieuwe kantooruren en hybride werken',
-            excerpt: 'Vanaf volgende maand introduceren we flexibele kantooruren voor nog betere work-life balance.',
-            content: 'We luisteren naar jullie feedback! Vanaf volgende maand kunnen jullie kiezen uit flexibele kantooruren tussen 7:00 en 19:00. Ook blijft hybride werken mogelijk met minimaal 2 dagen op kantoor per week voor optimale samenwerking.',
-            image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop',
-            author: 'Management Team',
-            date: new Date(Date.now() - 432000000),
-            category: 'nieuws',
-            likes: 56,
-            comments: [],
-            isLiked: true
-        }
-    ])
+    const newsItems = ref<NewsItem[]>([])
+    const isLoading = ref(false)
 
-    const toggleLike = (id: number) => {
-        const item = newsItems.value.find(n => n.id === id)
-        if (item) {
-            item.isLiked = !item.isLiked
-            item.likes += item.isLiked ? 1 : -1
+    const fetchNewsFromAPI = async () => {
+        try {
+            isLoading.value = true
+            const data = await newsAPI.getAll()
+            console.log('News data:', data)
+
+            // Transform API data to match NewsItem interface
+            newsItems.value = await Promise.all(data.map(async (item: any) => {
+                let comments = []
+                let likes = 0
+                try {
+                    comments = await engagementAPI.getComments(item.id)
+                    likes = await engagementAPI.getLikes(item.id)
+                } catch (error) {
+                    console.error(`Error fetching comments for news ${item.id}:`, error)
+                }
+
+                return {
+                    id: item.id,
+                    title: item.title,
+                    content: item.content,
+                    excerpt: item.content.substring(0, 100) + '...',
+                    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop',
+                    author_name: item.author_name || 'Onbekend',
+                    author: item.author_name || 'Onbekend',
+                    created_at: item.created_at,
+                    date: new Date(item.created_at),
+                    category: item.category || 'nieuws',
+                    likes: item.likes_count || 0,
+                    comments: comments,
+                    isLiked: false
+                }
+            }))
+        } catch (error) {
+            console.error('Error fetching news from API:', error)
+            // Keep existing items on error
+        } finally {
+            isLoading.value = false
         }
     }
 
-    const addComment = (newsId: number, content: string, author: string) => {
+    const toggleLike = async (id: number) => {
+        const item = newsItems.value.find(n => n.id === id)
+        if (!item) return
+
+        try {
+            // Call API to toggle like in database
+            const result = await engagementAPI.toggleLike(id)
+
+            // Update local state
+            item.isLiked = result.liked
+            item.likes = result.count
+            console.log(`✅ Like toggled for news ${id}:`, result)
+        } catch (error) {
+            console.error(`❌ Error toggling like for news ${id}:`, error)
+        }
+    }
+
+    const addComment = async (newsId: number, content: string, author: string) => {
         const item = newsItems.value.find(n => n.id === newsId)
-        if (item) {
+        if (!item) return
+
+        try {
+            // Call API to add comment to database
+            const newComment = await engagementAPI.addComment(newsId, content)
+            console.log("New comment:", newComment)
+            // Update local state
+            if (!item.comments) item.comments = []
             item.comments.push({
-                id: item.comments.length + 1,
-                author,
-                avatar: `https://ui-avatars.com/api/?name=${author}&background=004E89&color=fff`,
-                content,
-                date: new Date()
+                id: newComment.id,
+                author: newComment.author_name || author,
+                avatar: `https://ui-avatars.com/api/?name=${newComment.author_name || author}&background=004E89&color=fff`,
+                content: newComment.content,
+                date: new Date(newComment.created_at)
             })
+            console.log(`✅ Comment added for news ${newsId}:`, newComment)
+        } catch (error) {
+            console.error(`❌ Error adding comment for news ${newsId}:`, error)
         }
     }
 
@@ -135,6 +117,8 @@ export const useNewsStore = defineStore('news', () => {
 
     return {
         newsItems,
+        isLoading,
+        fetchNewsFromAPI,
         toggleLike,
         addComment,
         getNewsById
