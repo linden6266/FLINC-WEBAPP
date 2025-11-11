@@ -34,6 +34,7 @@ import {
   Settings,
   LogIn,
   Shield,
+  Dices,
 } from "lucide-vue-next";
 import { useUserStore } from "../stores/userStore";
 import { mapState } from "pinia";
@@ -47,6 +48,7 @@ export default defineComponent({
     Settings,
     LogIn,
     Shield,
+    Dices,
   },
   props: {
     isLoggedIn: {
@@ -59,7 +61,8 @@ export default defineComponent({
       navItems: [
         { path: "/", label: "Home", icon: "Home" },
         { path: "/nieuws", label: "Nieuws", icon: "Newspaper" },
-        { path: "/spel", label: "Spel", icon: "Gamepad2" },
+        { path: "/bingo", label: "Bingo", icon: "Dices" },
+        { path: "/quiz", label: "quiz", icon: "Gamepad2" },
         {
           path: "/login",
           label: "Login",
@@ -88,7 +91,8 @@ export default defineComponent({
       this.navItems = [
         { path: "/", label: "Home", icon: "Home" },
         { path: "/nieuws", label: "Nieuws", icon: "Newspaper" },
-        { path: "/spel", label: "Spel", icon: "Gamepad2" },
+        { path: "/bingo", label: "Bingo", icon: "Dices" },
+        { path: "/quiz", label: "quiz", icon: "Gamepad2" },
         {
           path: "/admin/events",
           label: "Admin",

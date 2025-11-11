@@ -3,7 +3,8 @@
     <!-- Welcome Section -->
     <div class="mb-8">
       <h2 class="text-3xl font-bold text-flinc-darkgray mb-2">
-        {{ greeting }}, {{ userName }}! 👋
+        {{ greeting }},
+        {{ userName.charAt(0).toUpperCase() + userName.slice(1) }}! 👋
       </h2>
       <p class="text-gray-600 text-lg">Dit speelt er vandaag bij Buro Flinc</p>
     </div>
@@ -85,7 +86,7 @@
             </svg>
           </div>
           <router-link
-            to="/spel"
+            to="/quiz"
             class="btn-primary w-full text-center block bg-white text-purple-600 hover:bg-opacity-90"
           >
             Start Quiz

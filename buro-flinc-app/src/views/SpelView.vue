@@ -1,14 +1,14 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <div class="mb-8">
-      <h2 class="text-3xl font-bold text-flinc-darkgray mb-4">
-        🎮 Spel & Quiz
-      </h2>
-      <p class="text-gray-600">Test je kennis en verdien punten!</p>
+      <h2 class="text-3xl font-bold text-flinc-darkgray mb-4">🎮 FLINC Quiz</h2>
+      <p class="text-gray-600">
+        Test je kennis over Buro Flinc en verdien punten!
+      </p>
     </div>
 
     <!-- Quiz Section -->
-    <div v-if="!quizCompleted" class="card mb-8">
+    <div v-if="!quizCompleted && !hasAttemptedToday" class="card mb-8">
       <!-- Progress Bar -->
       <div class="mb-6">
         <div class="flex justify-between text-sm text-gray-600 mb-2">
@@ -35,18 +35,121 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             v-for="(option, index) in currentQuestion.options"
-            :key="index"
+            :key="`option-${index}-${currentQuestionIndex}`"
             @click="answerQuestion(index)"
-            class="p-6 rounded-xl border-2 border-gray-200 hover:border-flinc-pink hover:bg-pink-50 transition-all duration-200 text-left font-semibold text-flinc-darkgray hover:scale-105"
+            :disabled="showAnswerFeedback"
+            class="p-6 rounded-xl border-2 transition-all duration-200 text-left font-semibold text-flinc-darkgray disabled:cursor-not-allowed"
+            :class="getOptionClass(index)"
           >
             <span
-              class="inline-block w-8 h-8 bg-flinc-pink text-white rounded-full mr-3 text-center leading-8"
+              class="inline-block w-8 h-8 text-white rounded-full mr-3 text-center leading-8"
+              :class="getOptionLetterClass(index)"
             >
               {{ String.fromCharCode(65 + index) }}
             </span>
             {{ option }}
           </button>
         </div>
+      </div>
+
+      <!-- Answer Feedback -->
+      <div
+        v-if="showAnswerFeedback && lastAnswerResult"
+        class="mt-6 p-6 rounded-xl"
+        :class="
+          lastAnswerResult.isCorrect
+            ? 'bg-green-50 border-2 border-green-200'
+            : 'bg-red-50 border-2 border-red-200'
+        "
+      >
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0">
+            <svg
+              v-if="lastAnswerResult.isCorrect"
+              class="w-8 h-8 text-green-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <svg
+              v-else
+              class="w-8 h-8 text-red-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h4
+              class="text-lg font-bold mb-2"
+              :class="
+                lastAnswerResult.isCorrect ? 'text-green-800' : 'text-red-800'
+              "
+            >
+              {{ lastAnswerResult.isCorrect ? "Correct!" : "Niet correct" }}
+            </h4>
+            <p
+              class="text-sm mb-2"
+              :class="
+                lastAnswerResult.isCorrect ? 'text-green-700' : 'text-red-700'
+              "
+            >
+              {{ lastAnswerResult.explanation }}
+            </p>
+            <div class="flex items-center space-x-4 text-sm">
+              <span
+                :class="
+                  lastAnswerResult.isCorrect ? 'text-green-600' : 'text-red-600'
+                "
+              >
+                +{{ lastAnswerResult.points }} punten
+              </span>
+              <span class="text-gray-500">
+                Volgende vraag in 3 seconden...
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Already Attempted Today -->
+    <div v-else-if="hasAttemptedToday" class="card mb-8 text-center">
+      <div class="mb-6">
+        <div
+          class="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center"
+        >
+          <svg
+            class="w-12 h-12 text-white"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <h3 class="text-3xl font-bold text-flinc-darkgray mb-2">
+          Quiz Al Gedaan Vandaag
+        </h3>
+        <p class="text-xl text-gray-600 mb-4">
+          Kom morgen terug voor een nieuwe quiz!
+        </p>
+        <p class="text-gray-600">
+          Je kunt wel de leaderboard bekijken om te zien hoe je het hebt gedaan.
+        </p>
       </div>
     </div>
 
@@ -131,14 +234,14 @@
         </div>
       </div>
 
-      <button @click="resetQuiz" class="btn-primary">Opnieuw Spelen</button>
+      <button @click="resetQuiz" class="btn-primary">Opnieuw quizen</button>
     </div>
 
     <!-- Leaderboard -->
     <div class="card">
-      <h3 class="text-2xl font-bold text-flinc-darkgray mb-6 flex items-center">
+      <h3 class="text font-bold text-flinc-darkgray mb-6 flex items-center">
         <svg
-          class="w-8 h-8 mr-2 text-flinc-yellow"
+          class="w-8 h-8 text-flinc-yellow"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -146,13 +249,29 @@
             d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
           />
         </svg>
-        Leaderboard
+        Dagelijkse Leaderboard
+        <span class="ml-auto text-sm text-gray-500 font-normal">
+          {{ new Date().toLocaleDateString("nl-NL") }}
+        </span>
       </h3>
 
-      <div class="space-y-3">
+      <div v-if="leaderboard.length === 0" class="text-center py-8">
+        <svg
+          class="w-16 h-16 mx-auto mb-4 text-gray-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+          />
+        </svg>
+        <p class="text-gray-500">Nog geen scores vandaag. Wees de eerste!</p>
+      </div>
+
+      <div v-else class="space-y-3">
         <div
           v-for="(entry, index) in leaderboard"
-          :key="index"
+          :key="entry.name + entry.completed_at"
           class="flex items-center space-x-4 p-4 rounded-xl transition-all hover:bg-flinc-gray"
           :class="
             index < 3 ? 'bg-gradient-to-r from-orange-50 to-yellow-50' : ''
@@ -162,7 +281,7 @@
             class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg"
             :class="getRankClass(index)"
           >
-            {{ index + 1 }}
+            {{ entry.rank || index + 1 }}
           </div>
           <img
             :src="entry.avatar"
@@ -171,7 +290,7 @@
           />
           <div class="flex-1">
             <p class="font-bold text-flinc-darkgray">{{ entry.name }}</p>
-            <p class="text-sm text-gray-600">{{ entry.team }}</p>
+            <p class="text-sm text-gray-600">{{ entry.team || "Team" }}</p>
           </div>
           <div class="text-right">
             <p class="text-2xl font-bold text-flinc-pink">
@@ -191,7 +310,7 @@ import { mapState, mapActions } from "pinia";
 import { useQuizStore } from "../stores/quizStore";
 
 export default defineComponent({
-  name: "SpelView",
+  name: "spelView",
   computed: {
     ...mapState(useQuizStore, [
       "currentQuiz",
@@ -203,6 +322,10 @@ export default defineComponent({
       "currentQuestion",
       "totalQuestions",
       "progress",
+      "hasAttemptedToday",
+      "isSubmitting",
+      "lastAnswerResult",
+      "showAnswerFeedback",
     ]),
     getScoreMessage() {
       if (this.userScore >= 80)
@@ -215,7 +338,12 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(useQuizStore, ["answerQuestion", "resetQuiz"]),
+    ...mapActions(useQuizStore, [
+      "answerQuestion",
+      "resetQuiz",
+      "fetchLeaderboard",
+      "checkAttemptToday",
+    ]),
     getRankClass(index: number) {
       if (index === 0)
         return "bg-gradient-to-br from-yellow-400 to-yellow-600 text-white";
@@ -225,6 +353,69 @@ export default defineComponent({
         return "bg-gradient-to-br from-orange-400 to-orange-600 text-white";
       return "bg-gray-100 text-gray-600";
     },
+    getOptionClass(index: number) {
+      // Only show selection styling during feedback
+      if (!this.showAnswerFeedback || !this.lastAnswerResult) {
+        console.log(
+          `Option ${index}: Default styling (feedback: ${
+            this.showAnswerFeedback
+          }, result: ${!!this.lastAnswerResult})`
+        );
+        return "border-gray-200 hover:border-flinc-pink hover:bg-pink-50 hover:scale-105";
+      }
+
+      if (index === this.lastAnswerResult.correctAnswer) {
+        console.log(`Option ${index}: Correct answer styling`);
+        return "border-green-400 bg-green-50 scale-105";
+      }
+
+      if (
+        index === this.lastAnswerResult.selectedAnswer &&
+        !this.lastAnswerResult.isCorrect
+      ) {
+        console.log(`Option ${index}: Wrong answer styling`);
+        return "border-red-400 bg-red-50";
+      }
+
+      console.log(`Option ${index}: Neutral styling`);
+      return "border-gray-200 opacity-50";
+    },
+    getOptionLetterClass(index: number) {
+      if (!this.showAnswerFeedback || !this.lastAnswerResult) {
+        return "bg-flinc-pink";
+      }
+
+      if (index === this.lastAnswerResult.correctAnswer) {
+        return "bg-green-500";
+      }
+
+      if (
+        index === this.lastAnswerResult.selectedAnswer &&
+        !this.lastAnswerResult.isCorrect
+      ) {
+        return "bg-red-500";
+      }
+
+      return "bg-gray-400";
+    },
+  },
+  watch: {
+    currentQuestionIndex() {
+      // Force re-render of options when question changes
+      console.log("Question changed, resetting option styling");
+    },
+    quizCompleted(newVal) {
+      // Refresh leaderboard when quiz completes
+      if (newVal) {
+        console.log("Quiz completed, refreshing leaderboard");
+        this.fetchLeaderboard();
+      }
+    },
+  },
+  async mounted() {
+    const quizStore = useQuizStore();
+    await quizStore.fetchLeaderboard();
+    await quizStore.checkAttemptToday();
   },
 });
 </script>

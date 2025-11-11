@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { quizAPI } from '../services/api'
 
 export interface QuizQuestion {
     id: number
@@ -14,6 +15,16 @@ export interface LeaderboardEntry {
     team: string
     score: number
     avatar: string
+    rank?: number
+    completed_at?: string
+}
+
+export interface AnswerResult {
+    isCorrect: boolean
+    selectedAnswer: number
+    correctAnswer: number
+    explanation: string
+    points: number
 }
 
 export const useQuizStore = defineStore('quiz', () => {
@@ -55,61 +66,56 @@ export const useQuizStore = defineStore('quiz', () => {
         }
     ])
 
-    const leaderboard = ref<LeaderboardEntry[]>([
-        {
-            name: 'Emma de Jong',
-            team: 'Digital Innovation',
-            score: 95,
-            avatar: 'https://ui-avatars.com/api/?name=Emma+de+Jong&background=FF6B35&color=fff'
-        },
-        {
-            name: 'Lars Vermeer',
-            team: 'Project Management',
-            score: 90,
-            avatar: 'https://ui-avatars.com/api/?name=Lars+Vermeer&background=004E89&color=fff'
-        },
-        {
-            name: 'Sophie Bakker',
-            team: 'Marketing',
-            score: 85,
-            avatar: 'https://ui-avatars.com/api/?name=Sophie+Bakker&background=FFB81C&color=000'
-        },
-        {
-            name: 'Mike van Dijk',
-            team: 'Development',
-            score: 80,
-            avatar: 'https://ui-avatars.com/api/?name=Mike+van+Dijk&background=1A659E&color=fff'
-        },
-        {
-            name: 'Lisa Peters',
-            team: 'HR',
-            score: 75,
-            avatar: 'https://ui-avatars.com/api/?name=Lisa+Peters&background=FF6B35&color=fff'
-        }
-    ])
 
     const userScore = ref(0)
     const currentQuestionIndex = ref(0)
     const quizCompleted = ref(false)
     const userAnswers = ref<number[]>([])
+    const leaderboard = ref<LeaderboardEntry[]>([])
+    const hasAttemptedToday = ref(false)
+    const isSubmitting = ref(false)
+    const lastAnswerResult = ref<AnswerResult | null>(null)
+    const showAnswerFeedback = ref(false)
 
     const currentQuestion = computed(() => currentQuiz.value[currentQuestionIndex.value])
     const totalQuestions = computed(() => currentQuiz.value.length)
     const progress = computed(() => (currentQuestionIndex.value / totalQuestions.value) * 100)
 
     const answerQuestion = (answerIndex: number) => {
+        const current = currentQuestion.value
+        if (!current) return
+
         userAnswers.value.push(answerIndex)
 
-        const current = currentQuestion.value
-        if (current && answerIndex === current.correctAnswer) {
-            userScore.value += 20
+        const isCorrect = answerIndex === current.correctAnswer
+        const points = isCorrect ? 20 : 0
+
+        if (isCorrect) {
+            userScore.value += points
         }
 
-        if (currentQuestionIndex.value < currentQuiz.value.length - 1) {
-            currentQuestionIndex.value++
-        } else {
-            quizCompleted.value = true
+        // Set feedback for immediate UI response
+        lastAnswerResult.value = {
+            isCorrect,
+            selectedAnswer: answerIndex,
+            correctAnswer: current.correctAnswer,
+            explanation: current.explanation,
+            points
         }
+        showAnswerFeedback.value = true
+
+        // Move to next question after feedback delay
+        setTimeout(() => {
+            showAnswerFeedback.value = false
+            lastAnswerResult.value = null
+
+            if (currentQuestionIndex.value < currentQuiz.value.length - 1) {
+                currentQuestionIndex.value++
+            } else {
+                quizCompleted.value = true
+                submitScore()
+            }
+        }, 3000) // Show feedback for 3 seconds
     }
 
     const resetQuiz = () => {
@@ -117,6 +123,60 @@ export const useQuizStore = defineStore('quiz', () => {
         currentQuestionIndex.value = 0
         quizCompleted.value = false
         userAnswers.value = []
+        lastAnswerResult.value = null
+        showAnswerFeedback.value = false
+    }
+
+    const fetchLeaderboard = async () => {
+        try {
+            const data = await quizAPI.getLeaderboard()
+            leaderboard.value = data
+        } catch (error) {
+            console.error('Error fetching leaderboard:', error)
+            // Keep existing leaderboard on error
+        }
+    }
+
+    const checkAttemptToday = async () => {
+        try {
+            const data = await quizAPI.checkAttemptToday()
+            hasAttemptedToday.value = data.attempted
+        } catch (error) {
+            console.error('Error checking quiz attempt:', error)
+            hasAttemptedToday.value = false
+        }
+    }
+
+    const submitScore = async () => {
+        if (isSubmitting.value) return
+
+        try {
+            isSubmitting.value = true
+            console.log('Submitting quiz score:', userScore.value)
+            const result = await quizAPI.submitScore(userScore.value, totalQuestions.value)
+            console.log('Quiz score submitted successfully:', result)
+
+            // Mark user as having attempted today
+            hasAttemptedToday.value = true
+
+            // Refresh leaderboard after submission to show updated rankings
+            console.log('Refreshing leaderboard...')
+            await fetchLeaderboard()
+            console.log('Leaderboard refreshed successfully')
+        } catch (error: any) {
+            console.error('Error submitting score:', error)
+            // If submission fails due to already attempted, mark as attempted
+            if (error.message && (
+                error.message.includes('already attempted') ||
+                error.message.includes('once per day') ||
+                error.message.includes('You can only attempt')
+            )) {
+                hasAttemptedToday.value = true
+                console.log('User has already attempted quiz today')
+            }
+        } finally {
+            isSubmitting.value = false
+        }
     }
 
     return {
@@ -129,8 +189,15 @@ export const useQuizStore = defineStore('quiz', () => {
         currentQuestion,
         totalQuestions,
         progress,
+        hasAttemptedToday,
+        isSubmitting,
+        lastAnswerResult,
+        showAnswerFeedback,
         answerQuestion,
-        resetQuiz
+        resetQuiz,
+        fetchLeaderboard,
+        checkAttemptToday,
+        submitScore
     }
 })
 

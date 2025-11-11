@@ -219,6 +219,103 @@ export const notificationsAPI = {
     },
 };
 
+// Quiz API
+export const quizAPI = {
+    getLeaderboard: async () => {
+        console.log('Fetching leaderboard...', API_BASE_URL);
+        const response = await fetch(`${API_BASE_URL}/quiz/leaderboard`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch leaderboard');
+        }
+        return response.json();
+    },
+
+    checkAttemptToday: async () => {
+        const response = await fetch(`${API_BASE_URL}/quiz/attempt-today`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to check quiz attempt');
+        }
+        return response.json();
+    },
+
+    submitScore: async (score: number, totalQuestions: number = 5) => {
+        const response = await fetch(`${API_BASE_URL}/quiz/submit`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ score, totalQuestions }),
+        });
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to submit score');
+        }
+        return response.json();
+    },
+
+    getMyScore: async () => {
+        const response = await fetch(`${API_BASE_URL}/quiz/my-score`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch user score');
+        }
+        return response.json();
+    },
+};
+
+// Bingo API
+export const bingoAPI = {
+    getAllCards: async () => {
+        const response = await fetch(`${API_BASE_URL}/bingo/cards`, {
+            headers: getHeaders(false),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch bingo cards');
+        }
+        return response.json();
+    },
+
+    getMyCard: async () => {
+        const response = await fetch(`${API_BASE_URL}/bingo/my-card`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch your bingo card');
+        }
+        return response.json();
+    },
+
+    createCard: async (title: string, squares: string[]) => {
+        const response = await fetch(`${API_BASE_URL}/bingo/create`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ title, squares }),
+        });
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to create bingo card');
+        }
+        return response.json();
+    },
+
+    toggleSquare: async (cardId: number, squareId: number) => {
+        const response = await fetch(
+            `${API_BASE_URL}/bingo/card/${cardId}/square/${squareId}/toggle`,
+            {
+                method: 'POST',
+                headers: getHeaders(),
+            }
+        );
+        if (!response.ok) {
+            throw new Error('Failed to toggle square');
+        }
+        return response.json();
+    },
+};
+
 // News API
 export const newsAPI = {
     getAll: async () => {

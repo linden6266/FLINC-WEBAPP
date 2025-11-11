@@ -18,7 +18,7 @@
             <p
               class="text-xs bg-flinc-gradient bg-clip-text text-transparent hidden sm:block"
             >
-              {{ greeting }}, {{ userName }}
+              <!-- {{ (greeting + ", " + userName).charAt(0).toUpperCase() }} -->
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@
                 <p
                   class="text-sm font-semibold bg-flinc-gradient bg-clip-text text-transparent"
                 >
-                  {{ userName }}
+                  {{ userName.charAt(0).toUpperCase() + userName.slice(1) }}
                 </p>
                 <p class="text-xs text-gray-500">{{ userRole }}</p>
               </div>
@@ -120,9 +120,9 @@
               >
                 <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
                   <p class="text-sm font-semibold text-flinc-darkgray">
-                    {{ userName }}
+                    {{ userName.charAt(0).toUpperCase() + userName.slice(1) }}
                   </p>
-                  <p class="text-xs text-gray-500" v-if="isAdmin">👑 Admin</p>
+                  <p class="text-xs text-gray-500" v-if="isAdmin">Admin</p>
                 </div>
                 <div class="py-2">
                   <button

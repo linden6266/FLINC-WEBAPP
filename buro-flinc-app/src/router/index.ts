@@ -34,9 +34,9 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/spel',
-        name: 'spel',
-        component: () => import('../views/SpelView.vue'),
+        path: '/quiz',
+        name: 'quiz',
+        component: () => import('../views/spelView.vue'),
         meta: { requiresAuth: true }
     },
     {
@@ -56,6 +56,12 @@ const routes: RouteRecordRaw[] = [
         name: 'admin-events',
         component: () => import('../views/AdminEventsView.vue'),
         meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+        path: '/bingo',
+        name: 'bingo',
+        component: () => import('../views/BingoView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 

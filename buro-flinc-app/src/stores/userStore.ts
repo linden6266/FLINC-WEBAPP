@@ -61,6 +61,7 @@ export const useUserStore = defineStore('user', () => {
 
     // Authentication methods
     const setUser = (user: { id: number; username: string; isAdmin: boolean }) => {
+        console.log("Setting user:", user);
         userId.value = user.id
         username.value = user.username
         isAdmin.value = user.isAdmin
@@ -76,6 +77,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     const login = (token: string, user: { id: number; username: string; isAdmin: boolean }) => {
+        console.log("Logging in user:", user);
         authToken.value = token
         setUser(user)
     }
@@ -109,6 +111,7 @@ export const useUserStore = defineStore('user', () => {
                 userName.value = name
                 // Use FLINC gradient colors for avatar
                 userAvatar.value = `https://ui-avatars.com/api/?name=${name}&background=004E89&color=fff&bold=true`
+
                 console.log('✅ User session restored:', name, '| isAdmin:', isAdmin.value)
             } catch (error) {
                 console.error('Error restoring session:', error)

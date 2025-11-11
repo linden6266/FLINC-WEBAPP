@@ -134,6 +134,7 @@ export default defineComponent({
         // Store the token
         localStorage.setItem("authToken", response.token);
         localStorage.setItem("userId", response.user.id);
+        console.log("Setting userId:", response.user);
         localStorage.setItem("username", response.user.username);
         localStorage.setItem("isAdmin", response.user.isAdmin);
 

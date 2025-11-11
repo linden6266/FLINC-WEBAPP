@@ -24,7 +24,7 @@ Een moderne, interactieve werkplek-applicatie voor Buro Flinc, gebouwd met Vue 3
 - Quick polls en vragen
 - Team channels
 
-### 🎮 Spel & Quiz
+### 🎮 quiz & Quiz
 - Interactieve kennisquiz over Buro Flinc
 - Progress tracking
 - Score berekening
@@ -105,7 +105,7 @@ src/
 │   ├── NieuwsView.vue
 │   ├── NieuwsDetailView.vue
 │   ├── ChatView.vue
-│   ├── SpelView.vue
+│   ├── quizView.vue
 │   ├── ZoekenView.vue
 │   └── InstellingenView.vue
 ├── stores/             # Pinia state management

@@ -269,7 +269,7 @@ export default defineComponent({
         },
         {
           id: 4,
-          title: "Quiz & Spellen",
+          title: "Quiz & quizlen",
           description: "Nieuwe quizzen en uitdagingen",
           enabled: true,
         },
