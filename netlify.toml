@@ -25,4 +25,10 @@
   force = true
   conditions = { Language = ["en"] }
 
+## SPA fallback so client-side routes (e.g., /bingo) work on refresh
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 
