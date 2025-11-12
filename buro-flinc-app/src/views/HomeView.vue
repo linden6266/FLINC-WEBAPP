@@ -90,7 +90,7 @@ export default defineComponent({
           description: "Documenten & sjablonen",
           icon: "Folder",
           gradient: "linear-gradient(135deg, #004E89 0%, #1A659E 100%)",
-          url: "https://sharepoint.com",
+          url: "ms-sp://",
         },
       ],
       upcomingEvents: [
