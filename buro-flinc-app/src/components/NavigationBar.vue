@@ -4,7 +4,7 @@
   >
     <div class="max-w-7xl mx-auto">
       <div
-        class="flex justify-around md:justify-center md:space-x-8 py-2 md:py-4"
+        class="flex justify-around md:justify-center md:space-x-8 py-3 md:py-4"
       >
         <router-link
           v-for="item in navItems.filter((item) => item.visible !== false)"
