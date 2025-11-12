@@ -1,5 +1,18 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL: string = (() => {
+    const explicit = (import.meta.env as any).VITE_API_URL as string | undefined;
+    if (explicit && explicit.trim().length > 0) {
+        return explicit;
+    }
+    if (typeof window !== 'undefined') {
+        const host = window.location.hostname;
+        if (host === 'localhost' || host === '127.0.0.1') {
+            return 'http://localhost:5001/api';
+        }
+    }
+    // Default for production builds behind a proxy (e.g., Netlify -> Render)
+    return '/api';
+})();
 
 // Helper function to get token from localStorage
 function getToken(): string | null {
