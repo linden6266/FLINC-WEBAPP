@@ -34,7 +34,6 @@
             placeholder="jouw gebruikersnaam"
             class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-flinc-pink focus:ring-2 focus:ring-flinc-pink focus:ring-opacity-20 outline-none transition-all"
           />
-          <p class="text-xs text-gray-500 mt-1">Demo: admin / moderator</p>
         </div>
 
         <!-- Password Input -->
@@ -87,8 +86,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { authAPI } from "@/services/api";
-import { useUserStore } from "@/stores/userStore";
+import { authAPI } from "../services/api";
+import { useUserStore } from "../stores/userStore";
 
 export default defineComponent({
   name: "LoginView",

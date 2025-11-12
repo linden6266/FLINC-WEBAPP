@@ -1,0 +1,17 @@
+{
+    "name": "Buro Flinc",
+    "short_name": "Flinc",
+    "description": "Buro Flinc digitale werkplek",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#004E89",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}
