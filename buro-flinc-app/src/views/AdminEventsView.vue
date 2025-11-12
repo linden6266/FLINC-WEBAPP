@@ -17,7 +17,7 @@
             >
               Admin Panel
             </h1>
-            <p class="text-gray-600 text-lg mt-2">
+            <p class="text-gray-600 text-sm mt-2">
               Beheer alle events en nieuws
             </p>
           </div>
