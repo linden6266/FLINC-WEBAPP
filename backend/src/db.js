@@ -1,5 +1,6 @@
 import sqlite3 from 'sqlite3';
 import fs from 'fs';
+import { createClient as createLibsqlClient } from '@libsql/client';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -10,36 +11,66 @@ const defaultDbPath = join(__dirname, '../data/flinc.db');
 const DB_PATH = (process.env.DB_PATH && process.env.DB_PATH.trim() !== '')
   ? process.env.DB_PATH
   : defaultDbPath;
+const LIBSQL_URL = process.env.LIBSQL_URL;
+const LIBSQL_AUTH_TOKEN = process.env.LIBSQL_AUTH_TOKEN;
 
 let db;
+let libsqlClient;
 
 export function initDb() {
   return new Promise((resolve, reject) => {
-    // Ensure the directory for the database exists (useful when DB_PATH points to a mounted volume)
-    try {
-      const dbDir = dirname(DB_PATH);
-      fs.mkdirSync(dbDir, { recursive: true });
-    } catch (e) {
-      console.warn('Could not ensure DB directory exists:', e);
-      // continue; sqlite will still attempt to create the file if path is valid
-    }
-    db = new sqlite3.Database(DB_PATH, (err) => {
-      if (err) {
-        console.error('Error opening database', err);
+    if (LIBSQL_URL) {
+      try {
+        libsqlClient = createLibsqlClient({
+          url: LIBSQL_URL,
+          authToken: LIBSQL_AUTH_TOKEN,
+        });
+        console.log('Connected to libSQL at', LIBSQL_URL);
+        resolve(libsqlClient);
+      } catch (err) {
+        console.error('Error connecting to libSQL', err);
         reject(err);
-      } else {
-        console.log('Database initialized at', DB_PATH);
-        resolve(db);
       }
-    });
+    } else {
+      // Ensure the directory for the database exists (useful when DB_PATH points to a mounted volume)
+      try {
+        const dbDir = dirname(DB_PATH);
+        fs.mkdirSync(dbDir, { recursive: true });
+      } catch (e) {
+        console.warn('Could not ensure DB directory exists:', e);
+        // continue; sqlite will still attempt to create the file if path is valid
+      }
+      db = new sqlite3.Database(DB_PATH, (err) => {
+        if (err) {
+          console.error('Error opening database', err);
+          reject(err);
+        } else {
+          console.log('Database initialized at', DB_PATH);
+          resolve(db);
+        }
+      });
+    }
   });
 }
 
 export function getDb() {
-  return db;
+  return libsqlClient ?? db;
 }
 
 export function runDb(sql, params = []) {
+  if (libsqlClient) {
+    return libsqlClient
+      .execute({ sql, args: params })
+      .then((result) => {
+        const id =
+          // libSQL returns BigInt for lastInsertRowid when present
+          result.lastInsertRowid !== undefined && result.lastInsertRowid !== null
+            ? Number(result.lastInsertRowid)
+            : undefined;
+        const changes = result.rowsAffected ?? 0;
+        return { id, changes };
+      });
+  }
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
       if (err) {
@@ -52,6 +83,11 @@ export function runDb(sql, params = []) {
 }
 
 export function getDb_single(sql, params = []) {
+  if (libsqlClient) {
+    return libsqlClient
+      .execute({ sql, args: params })
+      .then((result) => (result.rows && result.rows.length > 0 ? result.rows[0] : undefined));
+  }
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
       if (err) {
@@ -64,6 +100,11 @@ export function getDb_single(sql, params = []) {
 }
 
 export function getAllDb(sql, params = []) {
+  if (libsqlClient) {
+    return libsqlClient
+      .execute({ sql, args: params })
+      .then((result) => result.rows || []);
+  }
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
       if (err) {

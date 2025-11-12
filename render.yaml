@@ -10,11 +10,9 @@ services:
     envVars:
       - key: PORT
         value: "5001"
-      - key: DB_PATH
-        value: /data/flinc.db
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
+      - key: LIBSQL_URL
+        sync: false
+      - key: LIBSQL_AUTH_TOKEN
+        sync: false
 
 
