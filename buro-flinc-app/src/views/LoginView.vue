@@ -81,19 +81,6 @@
           <span v-else>Inloggen...</span>
         </button>
       </form>
-
-      <!-- Test Credentials Info -->
-      <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p class="text-sm font-semibold text-blue-900 mb-2">
-          📝 Test Credentials:
-        </p>
-        <p class="text-xs text-blue-800 mb-1">
-          <strong>Admin:</strong> admin / admin123
-        </p>
-        <p class="text-xs text-blue-800">
-          <strong>Moderator:</strong> moderator / moderator123
-        </p>
-      </div>
     </div>
   </div>
 </template>
