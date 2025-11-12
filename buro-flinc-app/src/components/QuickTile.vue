@@ -114,7 +114,8 @@ export default defineComponent({
         this.$router.push(this.route);
       } else if (this.url) {
         //should open sharepoint in a new tab
-        window.location.href = this.url;
+        window.location.href =
+          "https://apps.apple.com/nl/app/microsoft-sharepoint/id1091505266?l=en-GB";
       }
       this.$emit("click");
     },
