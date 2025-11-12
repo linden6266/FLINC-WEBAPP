@@ -113,7 +113,8 @@ export default defineComponent({
       if (this.route) {
         this.$router.push(this.route);
       } else if (this.url) {
-        window.open(this.url, "_blank");
+        //should open sharepoint in a new tab
+        window.location.href = this.url;
       }
       this.$emit("click");
     },
