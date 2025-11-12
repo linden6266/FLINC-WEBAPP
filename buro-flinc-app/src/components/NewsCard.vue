@@ -38,7 +38,7 @@
         class="flex items-center justify-between pt-3 border-t border-gray-100"
       >
         <button
-          @click.stop="toggleLike"
+          @click.stop="toggleLike(news.id)"
           class="flex items-center space-x-2 transition-all duration-200 hover:scale-110"
           :class="
             news.isLiked
@@ -102,8 +102,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { useNewsStore, NewsItem } from "../stores/newsStore";
+import { defineComponent } from "vue";
+import type { PropType } from "vue";
+import { useNewsStore } from "../stores/newsStore";
+import type { NewsItem } from "../stores/newsStore";
 import { mapActions } from "pinia";
 
 export default defineComponent({

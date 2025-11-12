@@ -1,16 +1,28 @@
 import sqlite3 from 'sqlite3';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const DB_PATH = join(__dirname, '../data/flinc.db');
+const defaultDbPath = join(__dirname, '../data/flinc.db');
+const DB_PATH = (process.env.DB_PATH && process.env.DB_PATH.trim() !== '')
+  ? process.env.DB_PATH
+  : defaultDbPath;
 
 let db;
 
 export function initDb() {
   return new Promise((resolve, reject) => {
+    // Ensure the directory for the database exists (useful when DB_PATH points to a mounted volume)
+    try {
+      const dbDir = dirname(DB_PATH);
+      fs.mkdirSync(dbDir, { recursive: true });
+    } catch (e) {
+      console.warn('Could not ensure DB directory exists:', e);
+      // continue; sqlite will still attempt to create the file if path is valid
+    }
     db = new sqlite3.Database(DB_PATH, (err) => {
       if (err) {
         console.error('Error opening database', err);

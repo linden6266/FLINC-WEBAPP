@@ -1,0 +1,28 @@
+## Netlify config for FLINC
+## - Builds the frontend in buro-flinc-app
+## - Proxies /api/* requests to your backend
+
+[build]
+  command = "npm --prefix buro-flinc-app ci && npm --prefix buro-flinc-app run build"
+  publish = "buro-flinc-app/dist"
+
+## Replace BACKEND_BASE_URL with your deployed backend base URL
+## Example: https://flinc-api.onrender.com
+[[redirects]]
+  from = "/api/*"
+  to = "https://BACKEND_BASE_URL/api/:splat"
+  status = 200
+  force = true
+
+## Local development with `netlify dev` (optional)
+## Proxies /api to your local backend at http://localhost:5001 by default.
+## To use this, install Netlify CLI: npm i -g netlify-cli
+## Then run in repo root: netlify dev
+[[redirects]]
+  from = "/api/*"
+  to = "http://localhost:5001/api/:splat"
+  status = 200
+  force = true
+  conditions = { Language = ["en"] }
+
+

@@ -154,14 +154,14 @@
           class="flex space-x-3 p-4 rounded-lg hover:bg-flinc-gray transition-colors"
         >
           <img
-            :src="`https://ui-avatars.com/api/?name=${comment.author_name}&background=004E89&color=fff`"
+            :src="`https://ui-avatars.com/api/?name=${comment.author}&background=004E89&color=fff`"
             :alt="comment.author"
             class="w-10 h-10 rounded-full"
           />
           <div class="flex-1">
             <div class="flex items-center space-x-2 mb-1">
               <span class="font-semibold text-flinc-darkgray">{{
-                comment.author_name
+                comment.author
               }}</span>
               <span class="text-xs text-gray-500">{{
                 formatDate(comment.date)

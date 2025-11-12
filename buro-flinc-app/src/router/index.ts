@@ -36,7 +36,7 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/quiz',
         name: 'quiz',
-        component: () => import('../views/spelView.vue'),
+        component: () => import('../views/SpelView.vue'),
         meta: { requiresAuth: true }
     },
     {
