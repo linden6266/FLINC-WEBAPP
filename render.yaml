@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: flinc-api
+    env: node
+    region: frankfurt
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: "5001"
+      - key: DB_PATH
+        value: /data/flinc.db
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+
+
