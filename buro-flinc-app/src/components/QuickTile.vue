@@ -113,10 +113,54 @@ export default defineComponent({
       if (this.route) {
         this.$router.push(this.route);
       } else if (this.url) {
-        //should open sharepoint in a new tab
-        window.location.href = "https://apps.apple.com/app/id1091505266";
+        this.openSharePoint(this.url);
       }
       this.$emit("click");
+    },
+    openSharePoint(webUrl: string) {
+      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const android = /Android/.test(navigator.userAgent);
+
+      const appUrls = [
+        `ms-sp://open?url=${encodeURIComponent(webUrl)}`,
+        `ms-sharepoint://open?url=${encodeURIComponent(webUrl)}`,
+        `ms-SharePoint://open?url=${encodeURIComponent(webUrl)}`,
+      ];
+
+      // Fallback to web if app doesn't open
+      const fallbackDelayMs = 1500;
+      const fallback = window.setTimeout(() => {
+        window.open(webUrl, "_blank");
+      }, fallbackDelayMs);
+
+      const cancelFallbackIfHidden = () => {
+        if (document.hidden) {
+          clearTimeout(fallback);
+          document.removeEventListener(
+            "visibilitychange",
+            cancelFallbackIfHidden
+          );
+        }
+      };
+      document.addEventListener("visibilitychange", cancelFallbackIfHidden);
+
+      // Try known SharePoint schemes
+      for (const u of appUrls) {
+        try {
+          window.location.href = u;
+        } catch {}
+      }
+
+      // Android Chrome intent fallback
+      if (android) {
+        try {
+          window.location.href = `intent://open?url=${encodeURIComponent(
+            webUrl
+          )}#Intent;scheme=ms-sp;package=com.microsoft.sharepoint;end`;
+        } catch {}
+      }
+
+      // iOS last resort: keep user on page and let web open via fallback
     },
   },
 });
