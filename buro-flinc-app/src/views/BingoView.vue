@@ -131,7 +131,7 @@
                 class="space-y-2"
               >
                 <div class="text-xs text-gray-500 text-center font-semibold">
-                  #{i + 1}
+                  #{{ i + 1 }}
                 </div>
                 <input
                   v-model="form.squares[i]"
