@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flinc-pwa-v1';
+const CACHE_NAME = 'flinc-pwa-v2';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -7,7 +7,11 @@ self.addEventListener('install', (event) => {
             cache.addAll([
                 '/',
                 '/index.html',
-                '/favicon.svg'
+                '/favicon.svg',
+                '/manifest.webmanifest',
+                '/icons/icon-192.png',
+                '/icons/icon-512.png',
+                '/icons/apple-touch-icon-180.png'
             ]).catch(() => void 0)
         )
     );
